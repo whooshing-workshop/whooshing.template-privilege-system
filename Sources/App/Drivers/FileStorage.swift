@@ -1,8 +1,4 @@
-import Vapor
-import Logging
-import FileStorage
 import FileStorageDriver
-import WhooshingServer
 
 /// 在此处配置文件加密存储模块，仅允许配置一个，默认为全局单例模式
 /// 文件加密存储模块需要将文件索引存入一个数据库中，因此它需要绑定一个数据库实例

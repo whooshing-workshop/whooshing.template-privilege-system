@@ -1,8 +1,4 @@
-import Vapor
-import Logging
-import PrivilegeSystem
 import PrivilegeSystemDriver
-import WhooshingServer
 
 /// 在此处配置权限主模块，仅允许配置一个，默认为全局单例模式
 /// 权限主模块需要保存权限结构至数据库中，因此需要绑定一个数据库实例

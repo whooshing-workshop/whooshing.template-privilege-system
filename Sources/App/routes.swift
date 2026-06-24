@@ -2,15 +2,15 @@ import Vapor
 import WhooshingServer
 import Fluent
 
-func routes<T>(_ woo: Whooshing<T>, _ app: Application) throws where T: ServiceType {
-    app.get { req async in
-        "It works!"
-    }
+func routes(_ woo: Whooshing<Https>, _ app: Application) throws {
+    try app.register(collection: AccountController())
+}
 
-    app.get("hello") { req async -> String in
-        "Hello, world!"
-    }
+func routes(_ woo: Whooshing<Api>, _ app: Application) throws {
+    try app.register(collection: ApiAccountController())
+    try app.register(collection: PrivilegeController())
+}
+
+func routes(_ woo: Whooshing<Inline>, _ app: Application) throws {
     
-    try app.register(collection: UserController())
-    try app.register(collection: FileController())
 }
