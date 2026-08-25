@@ -12,13 +12,51 @@ public struct DataController: RouteCollection, Sendable {
     ///         所有: http://URL/relation/RELATION_NAME
     ///         条件: http://URL/relation/RELATION_NAME?LEFT_ID=XXX
     ///         条件: http://URL/relation/RELATION_NAME?RIGHT_ID=XXX
+    ///
+    /// 模型记录:
+    ///     - GET /domain                      ?id
+    ///     - GET /group                       ?id ?parent_id ?name
+    ///     - GET /role                        ?id ?name
+    ///     - GET /user                        ?id ?email
+    ///     - GET /user_info                   ?id ?user_id
+    ///     - GET /policy/domain               ?id ?parent_id ?module_id
+    ///     - GET /policy/role                 ?id ?parent_id ?module_id
+    ///     - GET /info_slice/address          ?id ?user_info_id
+    ///     - GET /info_slice/phone            ?id ?user_info_id
+    ///     - GET /info_slice/alternate_email  ?id ?user_info_id
+    ///
+    /// 模型关系:
+    ///     - GET /relation/domain_user        ?domain_id ?user_id
+    ///     - GET /relation/domain_group       ?domain_id ?group_id
+    ///     - GET /relation/user_group         ?user_id   ?group_id
+    ///     - GET /relation/user_role          ?user_id   ?role_id
+    ///     - GET /relation/role_group         ?role_id   ?group_id
+    ///     - GET /relation/role_user_in_group ?role_id   ?user_in_group_id
     public func boot(routes: any RoutesBuilder) throws {
-        // Domain
-        let relation = routes.grouped("relation")
+        // 模型记录
         routes.get("domain", use: fetchDomain)
+        routes.get("group", use: fetchGroup)
+        routes.get("role", use: fetchRole)
+        routes.get("user", use: fetchUser)
+        routes.get("user_info", use: fetchUserInfo)
+
+        let policy = routes.grouped("policy")
+        policy.get("domain", use: fetchDomainPolicy)
+        policy.get("role", use: fetchRolePolicy)
+
+        let slice = routes.grouped("info_slice")
+        slice.get("address", use: fetchAddressSlice)
+        slice.get("phone", use: fetchPhoneSlice)
+        slice.get("alternate_email", use: fetchAlternateEmailSlice)
+
+        // 模型关系
+        let relation = routes.grouped("relation")
         relation.get("domain_user", use: fetchRelDomainUser)
-        
-        // ...
+        relation.get("domain_group", use: fetchRelDomainGroup)
+        relation.get("user_group", use: fetchRelUserGroup)
+        relation.get("user_role", use: fetchRelUserRole)
+        relation.get("role_group", use: fetchRelRoleGroup)
+        relation.get("role_user_in_group", use: fetchRelRoleUserInGroup)
     }
 }
 
@@ -32,24 +70,185 @@ public extension DataController {
         if let id = id { query = query.filter(\.id == id) }
         return try await query.all()
     }
-    
-    // Queries
+}
+
+// MARK: - Group
+
+public extension DataController {
+    @Sendable
+    func fetchGroup(req: Request) async throws -> [QGroup] {
+        let id = req.query[UUID.self, at: "id"]
+        let parentId = req.query[UUID.self, at: "parent_id"]
+        let name = req.query[String.self, at: "name"]
+        var query = QGroup.query(on: PrivilegeSystem.main)
+        if let id = id { query = query.filter(\.id == id) }
+        if let parentId = parentId { query = query.filter(\.$parent.id == parentId) }
+        if let name = name { query = query.filter(\.name == name) }
+        return try await query.all()
+    }
+}
+
+// MARK: - Role
+
+public extension DataController {
+    @Sendable
+    func fetchRole(req: Request) async throws -> [QRole] {
+        let id = req.query[UUID.self, at: "id"]
+        let name = req.query[String.self, at: "name"]
+        var query = QRole.query(on: PrivilegeSystem.main)
+        if let id = id { query = query.filter(\.id == id) }
+        if let name = name { query = query.filter(\.name == name) }
+        return try await query.all()
+    }
+}
+
+// MARK: - User
+
+public extension DataController {
+    @Sendable
+    func fetchUser(req: Request) async throws -> [QUser] {
+        let id = req.query[UUID.self, at: "id"]
+        let email = req.query[String.self, at: "email"]
+        var query = QUser.query(on: PrivilegeSystem.main)
+        if let id = id { query = query.filter(\.id == id) }
+        if let email = email { query = query.filter(\.email == email) }
+        return try await query.all()
+    }
+}
+
+// MARK: - UserInfo
+
+public extension DataController {
+    @Sendable
+    func fetchUserInfo(req: Request) async throws -> [QUserInfo] {
+        let id = req.query[UUID.self, at: "id"]
+        let userId = req.query[UUID.self, at: "user_id"]
+        var query = QUserInfo.query(on: PrivilegeSystem.main)
+        if let id = id { query = query.filter(\.id == id) }
+        if let userId = userId { query = query.filter(\.$user.id == userId) }
+        return try await query.all()
+    }
+}
+
+// MARK: - Policy
+
+public extension DataController {
+    @Sendable
+    func fetchDomainPolicy(req: Request) async throws -> [QPolicy<Domain>] {
+        try await fetchPolicy(Domain.self, req: req)
+    }
+
+    @Sendable
+    func fetchRolePolicy(req: Request) async throws -> [QPolicy<Role>] {
+        try await fetchPolicy(Role.self, req: req)
+    }
+
+    internal func fetchPolicy<T: PolicyType>(
+        _ type: T.Type,
+        req: Request
+    ) async throws -> [QPolicy<T>] where T.Model.IDValue == UUID {
+        let id = req.query[UUID.self, at: "id"]
+        let parentId = req.query[UUID.self, at: "parent_id"]
+        let moduleId = req.query[UUID.self, at: "module_id"]
+        var query = QPolicy<T>.query(on: PrivilegeSystem.main)
+        if let id = id { query = query.filter(\.id == id) }
+        if let parentId = parentId { query = query.filter(\.$parent.id == parentId) }
+        if let moduleId = moduleId { query = query.filter(\.moduleId == moduleId) }
+        return try await query.all()
+    }
+}
+
+// MARK: - InfoSlice
+
+public extension DataController {
+    @Sendable
+    func fetchAddressSlice(req: Request) async throws -> [QInfoSlice<Address>] {
+        try await fetchInfoSlice(Address.self, req: req)
+    }
+
+    @Sendable
+    func fetchPhoneSlice(req: Request) async throws -> [QInfoSlice<Phone>] {
+        try await fetchInfoSlice(Phone.self, req: req)
+    }
+
+    @Sendable
+    func fetchAlternateEmailSlice(req: Request) async throws -> [QInfoSlice<AlternateEmail>] {
+        try await fetchInfoSlice(AlternateEmail.self, req: req)
+    }
+
+    internal func fetchInfoSlice<T: UserInfoModel>(
+        _ type: T.Type,
+        req: Request
+    ) async throws -> [QInfoSlice<T>] {
+        let id = req.query[UUID.self, at: "id"]
+        let userInfoId = req.query[UUID.self, at: "user_info_id"]
+        var query = QInfoSlice<T>.query(on: PrivilegeSystem.main)
+        if let id = id { query = query.filter(\.id == id) }
+        if let userInfoId = userInfoId { query = query.filter(\.$userInfo.id == userInfoId) }
+        return try await query.all()
+    }
+}
+
+// MARK: - Relations
+
+public extension DataController {
     @Sendable
     func fetchRelDomainUser(req: Request) async throws -> [UserTDomain] {
-        struct DomainUser: Content {
-            let domainId: UUID?
-            let userId: UUID?
-            
-            enum CodingKeys: String, CodingKey {
-                case domainId = "domain_id"
-                case userId = "user_id"
-            }
-        }
-        
-        let parameters = try req.query.decode(DomainUser.self)
+        let domainId = req.query[UUID.self, at: "domain_id"]
+        let userId = req.query[UUID.self, at: "user_id"]
         var query = UserTDomain.query(on: PrivilegeSystem.main)
-        if let domainId = parameters.domainId { query = query.filter(\.domainId == domainId) }
-        if let userId = parameters.userId { query = query.filter(\.userId == userId) }
+        if let domainId = domainId { query = query.filter(\.domainId == domainId) }
+        if let userId = userId { query = query.filter(\.userId == userId) }
+        return try await query.all()
+    }
+
+    @Sendable
+    func fetchRelDomainGroup(req: Request) async throws -> [DomainTGroup] {
+        let domainId = req.query[UUID.self, at: "domain_id"]
+        let groupId = req.query[UUID.self, at: "group_id"]
+        var query = DomainTGroup.query(on: PrivilegeSystem.main)
+        if let domainId = domainId { query = query.filter(\.domainId == domainId) }
+        if let groupId = groupId { query = query.filter(\.groupId == groupId) }
+        return try await query.all()
+    }
+
+    @Sendable
+    func fetchRelUserGroup(req: Request) async throws -> [UserTGroup] {
+        let userId = req.query[UUID.self, at: "user_id"]
+        let groupId = req.query[UUID.self, at: "group_id"]
+        var query = UserTGroup.query(on: PrivilegeSystem.main)
+        if let userId = userId { query = query.filter(\.userId == userId) }
+        if let groupId = groupId { query = query.filter(\.groupId == groupId) }
+        return try await query.all()
+    }
+
+    @Sendable
+    func fetchRelUserRole(req: Request) async throws -> [UserTRole] {
+        let userId = req.query[UUID.self, at: "user_id"]
+        let roleId = req.query[UUID.self, at: "role_id"]
+        var query = UserTRole.query(on: PrivilegeSystem.main)
+        if let userId = userId { query = query.filter(\.userId == userId) }
+        if let roleId = roleId { query = query.filter(\.roleId == roleId) }
+        return try await query.all()
+    }
+
+    @Sendable
+    func fetchRelRoleGroup(req: Request) async throws -> [RoleTGroup] {
+        let roleId = req.query[UUID.self, at: "role_id"]
+        let groupId = req.query[UUID.self, at: "group_id"]
+        var query = RoleTGroup.query(on: PrivilegeSystem.main)
+        if let roleId = roleId { query = query.filter(\.roleId == roleId) }
+        if let groupId = groupId { query = query.filter(\.groupId == groupId) }
+        return try await query.all()
+    }
+
+    @Sendable
+    func fetchRelRoleUserInGroup(req: Request) async throws -> [RoleTUserInGroup] {
+        let roleId = req.query[UUID.self, at: "role_id"]
+        let userInGroupId = req.query[UUID.self, at: "user_in_group_id"]
+        var query = RoleTUserInGroup.query(on: PrivilegeSystem.main)
+        if let roleId = roleId { query = query.filter(\.roleId == roleId) }
+        if let userInGroupId = userInGroupId { query = query.filter(\.userInGroupId == userInGroupId) }
         return try await query.all()
     }
 }

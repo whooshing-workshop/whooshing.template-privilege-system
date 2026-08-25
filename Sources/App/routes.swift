@@ -14,7 +14,7 @@ func routes(_ nexus: Nexus<VaporTube>) throws {
     let apiProtected = nexus.tube.app.grouped("api").grouped(TokenAuthenticator(), QToken.guardMiddleware())
     try apiProtected.register(collection: PrivilegeController())
     try apiProtected.register(collection: ApiAccountController())
-    
+
     if Woo.isIndependentDebug {
         // 用于模拟 Manager 模块的服务模块 ID 验证 API
         // 仅在测试或开发环境下，才会加载此路由
