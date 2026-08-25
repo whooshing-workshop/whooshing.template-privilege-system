@@ -23,14 +23,21 @@ let package = Package(
         .tvOS(.v13),
     ],
     dependencies: [
+        .package(path: "/Users/clwang/GitHub/whooshing.nexus"),
         // 💧 Vapor -- Swift 服务器端第三方框架
-        .package(url: "https://github.com/whooshing-workshop/whooshing-vapor.git", from: "1.1.5"),
-        // 📁 Whooshing 文件加密系统模块驱动
-        .package(url: "https://github.com/whooshing-workshop/whooshing.driver-file-storage.git", from: "1.0.6"),
-        // 🪩 Whooshing 权限系统模块驱动
-        .package(url: "https://github.com/whooshing-workshop/whooshing.driver-privilege-system.git", from: "1.0.1"),
+        .package(url: "https://github.com/vapor/vapor", from: "4.122.0"),
         // 🔵 Swift 高性能网络通讯模块
-        .package(url: "https://github.com/apple/swift-nio.git", from: "2.65.0")
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.65.0"),
+        // ⭐️ Vapor 管道通讯模块
+//        .package(url: "https://github.com/whooshing-workshop/whooshing.tube-vapor", from: "0.0.5"),
+        .package(path: "/Users/clwang/GitHub/whooshing.tube-vapor"),
+        // 📁 Whooshing 文件加密系统模块驱动
+        .package(url: "https://github.com/whooshing-workshop/whooshing.driver-file-storage.git", from: "1.1.1"),
+        // 🪩 Whooshing 权限系统模块驱动
+//        .package(url: "https://github.com/whooshing-workshop/whooshing.driver-privilege-system.git", from: "1.0.4")
+        .package(path: "/Users/clwang/GitHub/whooshing.driver-privilege-system"),
+        
+        .package(path: "/Users/clwang/GitHub/whooshing.toolbox-privilege-system"),
     ],
     targets: [
         .executableTarget(
@@ -38,6 +45,7 @@ let package = Package(
             dependencies: [
                 .product(name: "NIOCore", package: "swift-nio"),
                 .product(name: "NIOPosix", package: "swift-nio"),
+                .product(name: "VaporTube", package: "whooshing.tube-vapor"),
                 .product(name: "FileStorageDriver", package: "whooshing.driver-file-storage"),
                 .product(name: "PrivilegeSystemDriver", package: "whooshing.driver-privilege-system")
             ],
@@ -47,7 +55,7 @@ let package = Package(
             name: "AppTests",
             dependencies: [
                 .target(name: "App"),
-                .product(name: "VaporTesting", package: "whooshing-vapor"),
+                .product(name: "VaporTesting", package: "vapor"),
             ],
             swiftSettings: swiftSettings
         )

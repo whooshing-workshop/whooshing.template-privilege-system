@@ -45,5 +45,4 @@ extension Data {
         }
         return data
     }
-
 }
