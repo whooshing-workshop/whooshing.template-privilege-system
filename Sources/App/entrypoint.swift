@@ -60,11 +60,6 @@ enum Woo {
             port: 5432,
             dbParameters: [
                 .init(
-                    name: "postgres",
-                    user: "postgres",
-                    password: "password"
-                ),
-                .init(
                     name: "privilege_system",
                     user: "postgres",
                     password: "password"

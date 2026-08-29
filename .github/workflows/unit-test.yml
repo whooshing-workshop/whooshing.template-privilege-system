@@ -21,6 +21,6 @@ jobs:
       ios_xcodebuild_action: ''
       
       with_pg_configs: |
-        postgres postgres password 5432 file_storage privilege_system
+        postgres file_storage password 5432 privilege_system
 
     secrets: inherit
