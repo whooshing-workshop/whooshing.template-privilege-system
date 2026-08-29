@@ -88,7 +88,7 @@ enum Woo {
 ///
 /// 如果未找到，将直接导致程序崩溃
 func db(name: String, from service: String) -> Environment.DB {
-    guard let dbService = (Woo.server.config.dbServices.first { $0.id.string == service }) else {
+    guard let dbService = (Woo.nexus.config.dbServices.first { $0.id.string == service }) else {
         fatalError("未找到所指定的数据库服务配置")
     }
     guard let db = (dbService.dbs.first { $0.id == .init(string: "\(service)/\(name)") }) else {
@@ -99,14 +99,37 @@ func db(name: String, from service: String) -> Environment.DB {
 
 
 /// 用于调试模式的参数，仅在独立调试和测试模式下生效，不会在生产或非独立开发模式下生效
-/// 关于模式，见 `Whooshing.Mode`
+/// 关于模式，见 `Mode`
 struct DebuggingParameters {
-    /// 客户端访问 api 服务时所必须持有的凭据，若凭据不正确，则会拒绝该用户的连线
-    static let apiClientCredential = "bRRPIiYbt0t4RzfqeeHSkg=="
-    
-    /// 客户端访问 api 服务时所必须持有的口令，若口令不正确，则会拒绝该用户的连线
-    static let apiClientToken = SendableSymmKey(key: .init(data: Data(base64Encoded: apiClientTokenStr)!))
-    static let apiClientTokenStr = "jXTz4vTQk0O/XFIjWQIHLC7z9/E0/4VtEb+LkF8IcA4="
+//    /// 客户端访问 api 服务时所必须持有的凭据，若凭据不正确，则会拒绝该用户的连线
+//    /// 这里提供 3 个，可以根据需要增加或减少
+//    /// 凭据为 16 字节的 base64 编码，可使用 `openssl rand -base64 16` 生成
+//    /// 请确保 mockCredentialStrings 与 mockTokenStrings 的数量一致
+//    static let mockCredentialStrings = [
+//        "bRRPIiYbt0t4RzfqeeHSkg==",
+//        "ozjtWWRHV59ET4VPUFPolQ==",
+//        "NWAbMWyTeolWU0eXg6IhXg=="
+//    ]
+//    
+//    /// 客户端访问 api 服务时所必须持有的口令，若口令不正确，则会拒绝该用户的连线
+//    /// 这里提供 3 个，可以根据需要增加或减少
+//    /// Token 为 32 字节的 base64 编码，可使用 `openssl rand -base64 16` 生成
+//    /// 请确保 mockCredentialStrings 与 mockTokenStrings 的数量一致
+//    static let mockTokenStrings = [
+//        "jXTz4vTQk0O/XFIjWQIHLC7z9/E0/4VtEb+LkF8IcA4=",
+//        "aN5JrwHLcs9/yeWpmjc+jYBdrKQUmvsVAH3RU8Fu5zk=",
+//        "k67184/DQ8hC7L7VXeH4BNAaJWix6cKebP51PgsqvOQ="
+//    ]
+//    
+//    static let mockTokens: [QToken] = mockCredentialStrings.enumerated().map {
+//        let data = try! JSONEncoder().encode([
+//            "id": AnyCodable(UUID()),
+//            "credential": AnyCodable($0.element),
+//            "token": AnyCodable(mockTokenStrings[$0.offset])
+//        ])
+//        
+//        return try! JSONDecoder().decode(QToken.self, from: data)
+//    }
     
     /// 服务监听的段口号
     static let port = 6500
@@ -147,7 +170,21 @@ struct DebuggingParameters {
     
     /// 本模块的 ID，取自 DebugingModuleController 中记录的服务 ID 列表的第一个
     /// 仅在生产环境为开发或测试模式才生效
-    static let moduleId = DebugingModuleController.serviceIds.first!
+    static let moduleId = serviceIds.first!
+    
+    /// 该模块接受的来源服务的 ID
+    ///
+    /// 若有其他服务模块访问该模块，其 ServiceId 必须在以下白名单中，
+    /// 且访问者的 serviceId != 被访问者的 serviceId，否则将会被拒绝连线
+    /// 作为例子仅提供 6 个，你可以按需添加或减少
+    static let serviceIds = [
+        UUID(uuidString: "9D61FB39-D7EF-46B6-8690-4DDD23E561A4")!,
+        UUID(uuidString: "F1ECC1D7-6E19-4F50-9B89-68FAA332B415")!,
+        UUID(uuidString: "2AC424F7-F26A-4EA4-BE44-202ABC7CC514")!,
+        UUID(uuidString: "74854475-1C1A-48E2-BAC9-E9C752942F88")!,
+        UUID(uuidString: "C59C74DC-AF7F-4497-854B-75561D9FE995")!,
+        UUID(uuidString: "F02F2803-BF88-4B51-A743-B3AA0F3FF804")!
+    ]
     
     /// 模块管理器的访问链接，模块管理器登记了所有模块的信息
     /// 需要用于来源服务验证，作为测试，可走本地巡回路径
@@ -177,13 +214,13 @@ extension Woo {
     }()
     
     private static let bootstrap: Bootstrap.Paras = {
-        asyncToSync {
+        try! asyncToSync {
             try await Bootstrap.run(mode, driverKeys: DebuggingParameters.driverKeys, logger: Self.logger.derive(subId: "app")).get()
         }
     }()
 
-    static let server: Nexus = {
-        asyncToSync {
+    static let nexus: Nexus = {
+        try! asyncToSync {
             let tube = try await VaporTube.make(bootstrap).get()
             let nexus = Nexus(tube: tube, bootstrap: bootstrap)
             
@@ -213,6 +250,6 @@ extension Woo {
 
     static func main() async throws {
         loggerBootstrap()
-        try await server.executeWithAsyncShutdown()
+        try await nexus.executeWithAsyncShutdown()
     }
 }

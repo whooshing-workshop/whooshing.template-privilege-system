@@ -22,6 +22,9 @@ let package = Package(
         .watchOS(.v6),
         .tvOS(.v13),
     ],
+    products: [
+        .executable(name: "App", targets: ["App"])
+    ],
     dependencies: [
         .package(path: "/Users/clwang/GitHub/whooshing.nexus"),
         // 💧 Vapor -- Swift 服务器端第三方框架
@@ -32,7 +35,8 @@ let package = Package(
 //        .package(url: "https://github.com/whooshing-workshop/whooshing.tube-vapor", from: "0.0.5"),
         .package(path: "/Users/clwang/GitHub/whooshing.tube-vapor"),
         // 📁 Whooshing 文件加密系统模块驱动
-        .package(url: "https://github.com/whooshing-workshop/whooshing.driver-file-storage.git", from: "1.1.1"),
+//        .package(url: "https://github.com/whooshing-workshop/whooshing.driver-file-storage.git", from: "1.1.1"),
+        .package(path: "/Users/clwang/GitHub/whooshing.driver-file-storage"),
         // 🪩 Whooshing 权限系统模块驱动
 //        .package(url: "https://github.com/whooshing-workshop/whooshing.driver-privilege-system.git", from: "1.0.4")
         .package(path: "/Users/clwang/GitHub/whooshing.driver-privilege-system"),

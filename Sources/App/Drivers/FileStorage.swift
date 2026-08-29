@@ -12,7 +12,7 @@ extension FileStorage {
     /// 自动创建根文件夹(加密文件的存储文件夹，相对于沙盒的路径)如果其不存在
     /// 若在独立测试环境中，则启动 debugging 模式，否则使用正常的生产或开发模式
     static let `default`: FileStorage = {
-        Woo.server.syncMakeFileStorage(
+        Woo.nexus.syncMakeFileStorage(
             for: db(name: "file_storage", from: "default"),
             storagePath: "default",
             logger: Woo.logger,
@@ -20,4 +20,8 @@ extension FileStorage {
             debugging: Woo.isIndependentDebug
         )
     }()
+}
+
+extension Request {
+    public var fileStorage: FileStorage { FileStorage.default }
 }

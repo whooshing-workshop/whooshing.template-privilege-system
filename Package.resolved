@@ -1,5 +1,5 @@
 {
-  "originHash" : "4e46687c6708fd963b1182dcf62c8c41064e543c0150e83ad3b0af7aa600b1af",
+  "originHash" : "7c653ea749b629ce99d39ceec25eea3370a8a333db1e9e017fce233b4e131b56",
   "pins" : [
     {
       "identity" : "anycodable",
@@ -341,15 +341,6 @@
       "state" : {
         "revision" : "90bbbdab3ede12c803cfbe91646f291c092517a3",
         "version" : "2.16.2"
-      }
-    },
-    {
-      "identity" : "whooshing.driver-file-storage",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/whooshing-workshop/whooshing.driver-file-storage.git",
-      "state" : {
-        "revision" : "558de95f894cb699297811159b3c9f5fef39d76f",
-        "version" : "1.1.1"
       }
     },
     {

@@ -10,10 +10,14 @@ extension PrivilegeSystem {
     /// 创建了一个最基本的 Logger，仅将日志记录打印在程序输出中
     /// 若在独立测试环境中，则启动 debugging 模式，否则使用正常的生产或开发模式
     static let main: PrivilegeSystem = {
-        Woo.server.syncMakePrivilegeSystem(
+        Woo.nexus.syncMakePrivilegeSystem(
             for: db(name: "privilege_system", from: "default"),
             logger: Woo.logger,
             debugging: Woo.isIndependentDebug
         )
     }()
+}
+
+extension Request {
+    public var privilegeSystem: PrivilegeSystem { PrivilegeSystem.main }
 }
