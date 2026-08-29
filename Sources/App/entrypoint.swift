@@ -21,7 +21,7 @@ enum Woo {
     
     /// 配置该服务模块是否接受运行在测试环境中，可将其改为 false
     /// 这样，若检测到环境为 testing 将会直接 fatalError
-    /// 另请详见 `Whooshing.Mode`
+    /// 另请详见 `Mode`
     static let testingAllowed = true
     
     /// 指示当前环境是否为独立调试模式
@@ -39,44 +39,6 @@ enum Woo {
         logger.logLevel = .info
         return logger
     }()
-    
-    /// 初始化你的 PostgreSQL 配置，此处设置，将连接到所有的服务模块，你也可以提供为不同的子模块提供不同的数据库
-    /// 这些参数仅在独立测试环境中可用
-    /// 生产环境中将由 Whooshing 系统提供加密数据库
-    ///
-    /// 该配置设置 PostgreSQL 服务配置，而每个数据库服务中可有多个数据库，通过 dbParameters 进行设置
-    ///
-    /// PostgreSQL 连接的主机名在生产和开发环境中仅仅允许在本地(localhost)
-    /// 而在测试环境中，可指定要用于测试的 Pg 服务器主机名
-    /// 该字段将会在生产环境中失效，因此标记为 "testingHost"
-    ///
-    /// fileStorageKey 用于文件加密系统的加密主密钥，为方便测试，硬编码至此。在生产环境中，这些均为无效
-    /// 只有需要作为 FileStorage 的数据库才需要配置 fileStorageKey，若不设置则表示不支持在其上创建文件加密系统
-    /// 作为测试目的，这些密钥可以重复
-    static let dbServices: [Environment.DBService] = [
-        .init(
-            name: "default",
-            host: "localhost",
-            port: 5432,
-            dbParameters: [
-                .init(
-                    name: "privilege_system",
-                    user: "postgres",
-                    password: "password"
-                ),
-                .init(
-                    name: "file_storage",
-                    user: "postgres",
-                    password: "password",
-                    fileStorageKey: SendableSymmKey(
-                        key: .init(
-                            data: Data(base64Encoded: "UA/0Si+aUkrJou9W2pCDjrTkDBiAfZxdoD1MEFyHP58=")!
-                        )
-                    )
-                )
-            ]
-        )
-    ]
 }
 
 /// 从 `dbServices` 中根据名称取得数据库的配置
@@ -96,7 +58,6 @@ func db(name: String, from service: String) -> Environment.DB {
     }
     return db
 }
-
 
 /// 用于调试模式的参数，仅在独立调试和测试模式下生效，不会在生产或非独立开发模式下生效
 /// 关于模式，见 `Mode`
@@ -155,6 +116,40 @@ struct DebuggingParameters {
     /// 需要用于来源服务验证，作为测试，可走本地巡回路径
     /// 仅在生产环境为开发或测试模式才生效
     static let managerURL: URL = .init(string: "http://localhost")!
+    
+    /// 初始化你的 PostgreSQL 配置
+    /// 这些参数仅在独立测试环境中可用
+    /// 生产环境中将由 Whooshing 系统提供加密数据库
+    ///
+    /// 该配置设置 PostgreSQL 服务配置，而每个数据库服务中可有多个数据库，通过 dbParameters 进行设置
+    ///
+    /// fileStorageKey 用于文件加密系统的加密主密钥，为方便测试，硬编码至此。在生产环境中，这些均为无效
+    /// 只有需要作为 FileStorage 的数据库才需要配置 fileStorageKey，若不设置则表示不支持在其上创建文件加密系统
+    /// 作为测试目的，这些密钥可以重复
+    static let dbServices: [Environment.DBService] = [
+        .init(
+            name: "default",
+            host: "localhost",
+            port: 5432,
+            dbParameters: [
+                .init(
+                    name: "privilege_system",
+                    user: "postgres",
+                    password: "password"
+                ),
+                .init(
+                    name: "file_storage",
+                    user: "postgres",
+                    password: "password",
+                    fileStorageKey: SendableSymmKey(
+                        key: .init(
+                            data: Data(base64Encoded: "UA/0Si+aUkrJou9W2pCDjrTkDBiAfZxdoD1MEFyHP58=")!
+                        )
+                    )
+                )
+            ]
+        )
+    ]
 }
 
 // MARK: - 以下为内部初始化代码，不要随意修改，除非你知道在做什么
@@ -175,7 +170,7 @@ extension DebuggingParameters {
 
 extension Woo {
     static let mode: Mode = {
-        Mode.detect(testingAllowed ? DebuggingParameters.configData(dbServiceConfigs: dbServices) : nil)
+        Mode.detect(testingAllowed ? DebuggingParameters.configData(dbServiceConfigs: DebuggingParameters.dbServices) : nil)
     }()
     
     private static let bootstrap: Bootstrap.Paras = {

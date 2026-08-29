@@ -12,7 +12,7 @@ struct AppTests {
         let logger = Logger(label: "testing")
         
         let bootstrap = try await Bootstrap.run(
-            .testing(DebuggingParameters.configData(dbServiceConfigs: Woo.dbServices)),
+            .testing(DebuggingParameters.configData(dbServiceConfigs: DebuggingParameters.dbServices)),
             driverKeys: Woo.driverKeys,
             logger: logger
         ).get()
