@@ -4,32 +4,32 @@ import Testing
 import Fluent
 import FileStorage
 import FileStorageDriver
-import WhooshingServer
+import VaporTube
 
 @Suite("App Tests with DB", .serialized)
 struct AppTests {
-    private func withApp(_ test: (Whooshing<Https>, Application) async throws -> ()) async throws {
+    private func withApp(_ test: (Nexus<VaporTube>) async throws -> ()) async throws {
         let logger = Logger(label: "testing")
-        let bootstrap = try await Whooshing<Https>.bootstrap(
-            .testing(DebuggingParameters.httpsDebuggingData(dbServiceConfigs: Woo.dbServices)),
-            driverKeys: DebuggingParameters.driverKeys,
+        
+        let bootstrap = try await Bootstrap.run(
+            .testing(DebuggingParameters.configData(dbServiceConfigs: Woo.dbServices)),
+            driverKeys: Woo.driverKeys,
             logger: logger
         ).get()
-        let woo = try await Whooshing.make(bootstrap).get()
+        
+        let tube = try await VaporTube.make(bootstrap).get()
+        let nexus = Nexus(tube: tube, bootstrap: bootstrap)
         do {
-            try await Configuration.https(woo, app: woo.app)
-            for db in woo.databases {
-                try await Configuration.migrationRegister(in: db, for: [woo])
-            }
-            try await woo.app.autoMigrate()
-            try await test(woo, woo.app)
-            try await woo.app.autoRevert()
+            try await configure(nexus)
+            try await nexus.tube.app.autoMigrate()
+            try await test(nexus)
+            try await nexus.tube.app.autoRevert()
         } catch {
-            try? await woo.app.autoRevert()
-            try await woo.asyncShutdown().get()
+            try? await nexus.tube.app.autoRevert()
+            try await nexus.asyncShutdown()
             throw error
         }
-        try await woo.asyncShutdown().get()
+        try await nexus.asyncShutdown()
     }
 }
 

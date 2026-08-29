@@ -1,19 +1,6 @@
 // swift-tools-version:6.3
 import PackageDescription
 
-// 设置该 Whooshing 服务模块的子模块
-// 指定某个环境变量，则需要在 configure.swift 中实现相关的配置函数
-// 可设置 .https 和 .api 两个
-let WhooshingModules: [WhooshingModuleType] = [
-    .https,
-    .api
-]
-
-enum WhooshingModuleType: String {
-    case https = "HTTPS"
-    case api = "API"
-}
-
 let package = Package(
     name: "whooshing.template-privilege-system",
     platforms: [
@@ -26,22 +13,16 @@ let package = Package(
         .executable(name: "App", targets: ["App"])
     ],
     dependencies: [
-        .package(path: "/Users/clwang/GitHub/whooshing.nexus"),
         // 💧 Vapor -- Swift 服务器端第三方框架
         .package(url: "https://github.com/vapor/vapor", from: "4.122.0"),
         // 🔵 Swift 高性能网络通讯模块
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.65.0"),
         // ⭐️ Vapor 管道通讯模块
-//        .package(url: "https://github.com/whooshing-workshop/whooshing.tube-vapor", from: "0.0.5"),
-        .package(path: "/Users/clwang/GitHub/whooshing.tube-vapor"),
+        .package(url: "https://github.com/whooshing-workshop/whooshing.tube-vapor", from: "0.0.6"),
         // 📁 Whooshing 文件加密系统模块驱动
-//        .package(url: "https://github.com/whooshing-workshop/whooshing.driver-file-storage.git", from: "1.1.1"),
-        .package(path: "/Users/clwang/GitHub/whooshing.driver-file-storage"),
+        .package(url: "https://github.com/whooshing-workshop/whooshing.driver-file-storage.git", from: "1.1.2"),
         // 🪩 Whooshing 权限系统模块驱动
-//        .package(url: "https://github.com/whooshing-workshop/whooshing.driver-privilege-system.git", from: "1.0.4")
-        .package(path: "/Users/clwang/GitHub/whooshing.driver-privilege-system"),
-        
-        .package(path: "/Users/clwang/GitHub/whooshing.toolbox-privilege-system"),
+        .package(url: "https://github.com/whooshing-workshop/whooshing.driver-privilege-system.git", from: "1.0.5")
     ],
     targets: [
         .executableTarget(
@@ -71,6 +52,5 @@ var swiftSettings: [SwiftSetting] {
     [
         .enableUpcomingFeature("DisableOutwardActorInference"),
         .enableExperimentalFeature("StrictConcurrency")
-    ] +
-    WhooshingModules.map { SwiftSetting.define($0.rawValue) }
+    ]
 }

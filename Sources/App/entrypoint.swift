@@ -27,6 +27,11 @@ enum Woo {
     /// 指示当前环境是否为独立调试模式
     static let isIndependentDebug: Bool = mode.envrionment != .production && testingAllowed
     
+    /// 所加载的驱动，该模块加载
+    ///     FileStorage: 文件加密存储模块
+    ///     PrivilegeSystem: 权限主系统模块
+    static let driverKeys: [any Environment.DriverKey.Type] = [FileStorageDriverKey.self, PrivilegeSystemDriverKey.self]
+    
     /// 该模块的日志配置
     static let logger: Logger = {
         var logger = Logger(label: appName.lowercased())
@@ -134,11 +139,6 @@ struct DebuggingParameters {
     /// 服务监听的段口号
     static let port = 6500
     
-    /// 所加载的驱动，该模块加载
-    ///     FileStorage: 文件加密存储模块
-    ///     PrivilegeSystem: 权限主系统模块
-    static let driverKeys: [any Environment.DriverKey.Type] = [FileStorageDriverKey.self, PrivilegeSystemDriverKey.self]
-    
     /// 初始化文件加密存储模块的配置，此处设置，将连接到所有的服务模块
     /// FileStorage 为全局单例模式，一个服务模块仅能部署一个文件存储实例
     /// 这些参数仅在独立测试环境中可用
@@ -215,7 +215,7 @@ extension Woo {
     
     private static let bootstrap: Bootstrap.Paras = {
         try! asyncToSync {
-            try await Bootstrap.run(mode, driverKeys: DebuggingParameters.driverKeys, logger: Self.logger.derive(subId: "app")).get()
+            try await Bootstrap.run(mode, driverKeys: Woo.driverKeys, logger: Self.logger.derive(subId: "app")).get()
         }
     }()
 
