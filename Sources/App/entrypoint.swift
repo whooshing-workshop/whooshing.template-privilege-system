@@ -106,36 +106,6 @@ func db(name: String, from service: String) -> Environment.DB {
 /// 用于调试模式的参数，仅在独立调试和测试模式下生效，不会在生产或非独立开发模式下生效
 /// 关于模式，见 `Mode`
 struct DebuggingParameters {
-//    /// 客户端访问 api 服务时所必须持有的凭据，若凭据不正确，则会拒绝该用户的连线
-//    /// 这里提供 3 个，可以根据需要增加或减少
-//    /// 凭据为 16 字节的 base64 编码，可使用 `openssl rand -base64 16` 生成
-//    /// 请确保 mockCredentialStrings 与 mockTokenStrings 的数量一致
-//    static let mockCredentialStrings = [
-//        "bRRPIiYbt0t4RzfqeeHSkg==",
-//        "ozjtWWRHV59ET4VPUFPolQ==",
-//        "NWAbMWyTeolWU0eXg6IhXg=="
-//    ]
-//    
-//    /// 客户端访问 api 服务时所必须持有的口令，若口令不正确，则会拒绝该用户的连线
-//    /// 这里提供 3 个，可以根据需要增加或减少
-//    /// Token 为 32 字节的 base64 编码，可使用 `openssl rand -base64 16` 生成
-//    /// 请确保 mockCredentialStrings 与 mockTokenStrings 的数量一致
-//    static let mockTokenStrings = [
-//        "jXTz4vTQk0O/XFIjWQIHLC7z9/E0/4VtEb+LkF8IcA4=",
-//        "aN5JrwHLcs9/yeWpmjc+jYBdrKQUmvsVAH3RU8Fu5zk=",
-//        "k67184/DQ8hC7L7VXeH4BNAaJWix6cKebP51PgsqvOQ="
-//    ]
-//    
-//    static let mockTokens: [QToken] = mockCredentialStrings.enumerated().map {
-//        let data = try! JSONEncoder().encode([
-//            "id": AnyCodable(UUID()),
-//            "credential": AnyCodable($0.element),
-//            "token": AnyCodable(mockTokenStrings[$0.offset])
-//        ])
-//        
-//        return try! JSONDecoder().decode(QToken.self, from: data)
-//    }
-    
     /// 服务监听的段口号
     static let port = 6500
     
