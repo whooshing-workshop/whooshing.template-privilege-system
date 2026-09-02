@@ -7,11 +7,6 @@ public struct AccountController: RouteCollection, Sendable {
         account.post("register", use: register)
         account.post("login", use: login)
         account.put("change_password", use: changePasswordWithoutAuth)
-        let authed = account.grouped(
-            TokenAuthenticator(),
-            QToken.guardMiddleware()
-        )
-        authed.post("change_password", use: changePassword)
     }
     
     @Sendable
@@ -37,17 +32,6 @@ public struct AccountController: RouteCollection, Sendable {
         
         let input = try req.content.decode(PasswordChangeInput.self)
         return try await PrivilegeSystem.main.account.changePassword(for: input.user, to: input.newPassword)
-    }
-    
-    @Sendable
-    func changePassword(req: Request) async throws -> QUser {
-        struct PasswordChangeInput: Content {
-            let newPassword: String
-        }
-        
-        let token = try req.auth.require(QToken.self)
-        let input = try req.content.decode(PasswordChangeInput.self)
-        return try await PrivilegeSystem.main.account.changePassword(for: token.user, to: input.newPassword)
     }
 }
 
