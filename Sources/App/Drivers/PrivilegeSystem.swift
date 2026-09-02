@@ -19,5 +19,5 @@ extension PrivilegeSystem {
 }
 
 extension Request {
-    public var privilegeSystem: PrivilegeSystem { PrivilegeSystem.main }
+    var privilegeSystem: PrivilegeSystem { PrivilegeSystem.main }
 }

@@ -23,5 +23,5 @@ extension FileStorage {
 }
 
 extension Request {
-    public var fileStorage: FileStorage { FileStorage.default }
+    var fileStorage: FileStorage { FileStorage.default }
 }

@@ -6,7 +6,6 @@ public struct AccountController: RouteCollection, Sendable {
         let account = routes.grouped("account")
         account.post("register", use: register)
         account.post("login", use: login)
-        account.post("authenticate", use: authenticate)
         account.put("change_password", use: changePasswordWithoutAuth)
         let authed = account.grouped(
             TokenAuthenticator(),
@@ -26,13 +25,6 @@ public struct AccountController: RouteCollection, Sendable {
     func login(req: Request) async throws -> QToken {
         let account = try req.content.decode(PUser.self)
         let result = try await PrivilegeSystem.main.account.login(by: account)
-        return result
-    }
-    
-    @Sendable
-    func authenticate(req: Request) async throws -> AuthData {
-        let token = try req.content.decode(EncryptedToken.self)
-        let result = try await PrivilegeSystem.main.account.authenticate(token: token)
         return result
     }
     

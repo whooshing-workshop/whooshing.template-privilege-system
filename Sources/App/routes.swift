@@ -8,7 +8,7 @@ func routes(_ nexus: Nexus<VaporTube>) throws {
     let dataRouter = nexus.tube.app.grouped("data")
     try dataRouter.register(collection: DataController())
     
-    let inlineProtected = nexus.tube.app.grouped("inline").grouped(ServiceValidator())
+    let inlineProtected = nexus.tube.app.grouped("inline").grouped(ServiceValidator(), ServiceValidator.Identifier.guardMiddleware())
     try inlineProtected.register(collection: ArbitrateController())
     
     let apiProtected = nexus.tube.app.grouped("api").grouped(TokenAuthenticator(), QToken.guardMiddleware())

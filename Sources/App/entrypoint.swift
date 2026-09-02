@@ -63,7 +63,7 @@ func db(name: String, from service: String) -> Environment.DB {
 /// 关于模式，见 `Mode`
 struct DebuggingParameters {
     /// 服务监听的段口号
-    static let port = 6500
+    static let port = 6501
     
     /// 初始化文件加密存储模块的配置，此处设置，将连接到所有的服务模块
     /// FileStorage 为全局单例模式，一个服务模块仅能部署一个文件存储实例
@@ -115,7 +115,7 @@ struct DebuggingParameters {
     /// 模块管理器的访问链接，模块管理器登记了所有模块的信息
     /// 需要用于来源服务验证，作为测试，可走本地巡回路径
     /// 仅在生产环境为开发或测试模式才生效
-    static let managerURL: URL = .init(string: "http://localhost")!
+    static let managerURL: URL = .init(string: "http://localhost:\(port)")!
     
     /// 初始化你的 PostgreSQL 配置
     /// 这些参数仅在独立测试环境中可用
@@ -161,7 +161,8 @@ extension DebuggingParameters {
             name: Woo.appName.lowercased(),
             port: port,
             dbServices: dbServiceConfigs,
-            managerUrl: managerURL
+            managerUrl: managerURL,
+            apiStrategy: .normal(authURL: .init(string: "http://localhost")!)
         )
         .load(fileStorage: DebuggingParameters.fileStorageParas)
         .load(privilegeSystem: DebuggingParameters.privilegeSystemParas)
@@ -183,14 +184,6 @@ extension Woo {
         try! asyncToSync {
             let tube = try await VaporTube.make(bootstrap).get()
             let nexus = Nexus(tube: tube, bootstrap: bootstrap)
-            
-            do {
-                try await configure(nexus)
-            } catch {
-                nexus.logger.report(error: error)
-                try? await nexus.asyncShutdown()
-                throw error
-            }
             return nexus
         }
     }()
@@ -210,6 +203,8 @@ extension Woo {
 
     static func main() async throws {
         loggerBootstrap()
+        driverInits()
+        try await configure(nexus)
         try await nexus.executeWithAsyncShutdown()
     }
 }

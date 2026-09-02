@@ -13,6 +13,14 @@ public struct ArbitrateData: Content, Sendable {
 public struct ArbitrateController: RouteCollection, Sendable {
     public func boot(routes: any RoutesBuilder) throws {
         routes.post("arbitrate", use: arbitrate)
+        routes.post("authenticate", use: authenticate)
+    }
+    
+    @Sendable
+    func authenticate(req: Request) async throws -> AuthData {
+        let token = try req.content.decode(EncryptedToken.self)
+        let result = try await PrivilegeSystem.main.account.authenticate(token: token)
+        return result
     }
     
     @Sendable
