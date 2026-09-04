@@ -39,6 +39,12 @@ enum Woo {
         logger.logLevel = .info
         return logger
     }()
+    
+    /// 用于创建 nobody 角色(无权限基本角色，或称默认角色)的 ID
+    ///
+    /// 指定 ID 创建用于方便测试或其他目的，指定 nil 表示使用随机的 UUID
+    /// 该参数只应用于测试环境，生产环境将使用随机 UUID
+    static let nobodyRoleId: UUID? = UUID(uuidString: "E7B2D19A-54F6-4A08-8C3E-96B719E2FD41")!
 }
 
 /// 从 `dbServices` 中根据名称取得数据库的配置
@@ -86,12 +92,17 @@ struct DebuggingParameters {
     ///     - scheme: 连线协议 http 或 https
     ///     - port: EOPA 监听的端口号
     ///     - testingHost: EOPA 所在的 ip 地址或域名
+    ///
+    /// reservedRoleName 为 角色创建的名称保留字
+    /// 即，由以下列表中任何项为名称的角色无法被直接创建
+    /// 只可使用提供的特殊方式创建
     static let privilegeSystemParas = Environment.PS(
         eopa: .init(
             scheme: .http,
             port: 8181,
             host: "localhost"
-        )
+        ),
+        reservedRoleName: ["admin"]
     )
     
     /// 本模块的 ID，取自 DebugingModuleController 中记录的服务 ID 列表的第一个
@@ -161,8 +172,7 @@ extension DebuggingParameters {
             name: Woo.appName.lowercased(),
             port: port,
             dbServices: dbServiceConfigs,
-            managerUrl: managerURL,
-            apiStrategy: .normal(authURL: .init(string: "http://localhost")!)
+            managerUrl: managerURL
         )
         .load(fileStorage: DebuggingParameters.fileStorageParas)
         .load(privilegeSystem: DebuggingParameters.privilegeSystemParas)
@@ -204,6 +214,7 @@ extension Woo {
     static func main() async throws {
         loggerBootstrap()
         driverInits()
+        try await PrivilegeSystem.main.createNobodyIfNotExist(roleId: Woo.isIndependentDebug ? Woo.nobodyRoleId : nil) // 创建 nobody 角色
         try await configure(nexus)
         try await nexus.executeWithAsyncShutdown()
     }

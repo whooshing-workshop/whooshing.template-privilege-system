@@ -11,7 +11,10 @@ func routes(_ nexus: Nexus<VaporTube>) throws {
     let inlineProtected = nexus.tube.app.grouped("inline").grouped(ServiceValidator(), ServiceValidator.Identifier.guardMiddleware())
     try inlineProtected.register(collection: ArbitrateController())
     
-    let apiProtected = nexus.tube.app.grouped("api").grouped(TokenAuthenticator(), QToken.guardMiddleware())
+    let apiProtected = nexus.tube.app.grouped("api").apiProtectGrouped(for: .main, in: nexus)
     try apiProtected.register(collection: PrivilegeController())
     try apiProtected.register(collection: ApiAccountController())
+    apiProtected.get("test") { req in
+        try req.auth.require(QRole.self)
+    }
 }

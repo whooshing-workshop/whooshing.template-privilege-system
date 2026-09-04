@@ -66,7 +66,7 @@ public extension DataController {
     @Sendable
     func fetchDomain(req: Request) async throws -> [QDomain] {
         let id = req.query[UUID.self, at: "id"]
-        var query = QDomain.query(on: PrivilegeSystem.main)
+        var query = QDomain.query(on: PrivilegeSystem.main.origin)
         if let id = id { query = query.filter(\.id == id) }
         return try await query.all()
     }
@@ -80,7 +80,7 @@ public extension DataController {
         let id = req.query[UUID.self, at: "id"]
         let parentId = req.query[UUID.self, at: "parent_id"]
         let name = req.query[String.self, at: "name"]
-        var query = QGroup.query(on: PrivilegeSystem.main)
+        var query = QGroup.query(on: PrivilegeSystem.main.origin)
         if let id = id { query = query.filter(\.id == id) }
         if let parentId = parentId { query = query.filter(\.$parent.id == parentId) }
         if let name = name { query = query.filter(\.name == name) }
@@ -95,7 +95,7 @@ public extension DataController {
     func fetchRole(req: Request) async throws -> [QRole] {
         let id = req.query[UUID.self, at: "id"]
         let name = req.query[String.self, at: "name"]
-        var query = QRole.query(on: PrivilegeSystem.main)
+        var query = QRole.query(on: PrivilegeSystem.main.origin)
         if let id = id { query = query.filter(\.id == id) }
         if let name = name { query = query.filter(\.name == name) }
         return try await query.all()
@@ -109,7 +109,7 @@ public extension DataController {
     func fetchUser(req: Request) async throws -> [QUser] {
         let id = req.query[UUID.self, at: "id"]
         let email = req.query[String.self, at: "email"]
-        var query = QUser.query(on: PrivilegeSystem.main)
+        var query = QUser.query(on: PrivilegeSystem.main.origin)
         if let id = id { query = query.filter(\.id == id) }
         if let email = email { query = query.filter(\.email == email) }
         return try await query.all()
@@ -123,7 +123,7 @@ public extension DataController {
     func fetchUserInfo(req: Request) async throws -> [QUserInfo] {
         let id = req.query[UUID.self, at: "id"]
         let userId = req.query[UUID.self, at: "user_id"]
-        var query = QUserInfo.query(on: PrivilegeSystem.main)
+        var query = QUserInfo.query(on: PrivilegeSystem.main.origin)
         if let id = id { query = query.filter(\.id == id) }
         if let userId = userId { query = query.filter(\.$user.id == userId) }
         return try await query.all()
@@ -150,7 +150,7 @@ public extension DataController {
         let id = req.query[UUID.self, at: "id"]
         let parentId = req.query[UUID.self, at: "parent_id"]
         let moduleId = req.query[UUID.self, at: "module_id"]
-        var query = QPolicy<T>.query(on: PrivilegeSystem.main)
+        var query = QPolicy<T>.query(on: PrivilegeSystem.main.origin)
         if let id = id { query = query.filter(\.id == id) }
         if let parentId = parentId { query = query.filter(\.$parent.id == parentId) }
         if let moduleId = moduleId { query = query.filter(\.moduleId == moduleId) }
@@ -182,7 +182,7 @@ public extension DataController {
     ) async throws -> [QInfoSlice<T>] {
         let id = req.query[UUID.self, at: "id"]
         let userInfoId = req.query[UUID.self, at: "user_info_id"]
-        var query = QInfoSlice<T>.query(on: PrivilegeSystem.main)
+        var query = QInfoSlice<T>.query(on: PrivilegeSystem.main.origin)
         if let id = id { query = query.filter(\.id == id) }
         if let userInfoId = userInfoId { query = query.filter(\.$userInfo.id == userInfoId) }
         return try await query.all()
@@ -196,7 +196,7 @@ public extension DataController {
     func fetchRelDomainUser(req: Request) async throws -> [UserTDomain] {
         let domainId = req.query[UUID.self, at: "domain_id"]
         let userId = req.query[UUID.self, at: "user_id"]
-        var query = UserTDomain.query(on: PrivilegeSystem.main)
+        var query = UserTDomain.query(on: PrivilegeSystem.main.origin)
         if let domainId = domainId { query = query.filter(\.domainId == domainId) }
         if let userId = userId { query = query.filter(\.userId == userId) }
         return try await query.all()
@@ -206,7 +206,7 @@ public extension DataController {
     func fetchRelDomainGroup(req: Request) async throws -> [DomainTGroup] {
         let domainId = req.query[UUID.self, at: "domain_id"]
         let groupId = req.query[UUID.self, at: "group_id"]
-        var query = DomainTGroup.query(on: PrivilegeSystem.main)
+        var query = DomainTGroup.query(on: PrivilegeSystem.main.origin)
         if let domainId = domainId { query = query.filter(\.domainId == domainId) }
         if let groupId = groupId { query = query.filter(\.groupId == groupId) }
         return try await query.all()
@@ -216,7 +216,7 @@ public extension DataController {
     func fetchRelUserGroup(req: Request) async throws -> [UserTGroup] {
         let userId = req.query[UUID.self, at: "user_id"]
         let groupId = req.query[UUID.self, at: "group_id"]
-        var query = UserTGroup.query(on: PrivilegeSystem.main)
+        var query = UserTGroup.query(on: PrivilegeSystem.main.origin)
         if let userId = userId { query = query.filter(\.userId == userId) }
         if let groupId = groupId { query = query.filter(\.groupId == groupId) }
         return try await query.all()
@@ -226,7 +226,7 @@ public extension DataController {
     func fetchRelUserRole(req: Request) async throws -> [UserTRole] {
         let userId = req.query[UUID.self, at: "user_id"]
         let roleId = req.query[UUID.self, at: "role_id"]
-        var query = UserTRole.query(on: PrivilegeSystem.main)
+        var query = UserTRole.query(on: PrivilegeSystem.main.origin)
         if let userId = userId { query = query.filter(\.userId == userId) }
         if let roleId = roleId { query = query.filter(\.roleId == roleId) }
         return try await query.all()
@@ -236,7 +236,7 @@ public extension DataController {
     func fetchRelRoleGroup(req: Request) async throws -> [RoleTGroup] {
         let roleId = req.query[UUID.self, at: "role_id"]
         let groupId = req.query[UUID.self, at: "group_id"]
-        var query = RoleTGroup.query(on: PrivilegeSystem.main)
+        var query = RoleTGroup.query(on: PrivilegeSystem.main.origin)
         if let roleId = roleId { query = query.filter(\.roleId == roleId) }
         if let groupId = groupId { query = query.filter(\.groupId == groupId) }
         return try await query.all()
@@ -246,7 +246,7 @@ public extension DataController {
     func fetchRelRoleUserInGroup(req: Request) async throws -> [RoleTUserInGroup] {
         let roleId = req.query[UUID.self, at: "role_id"]
         let userInGroupId = req.query[UUID.self, at: "user_in_group_id"]
-        var query = RoleTUserInGroup.query(on: PrivilegeSystem.main)
+        var query = RoleTUserInGroup.query(on: PrivilegeSystem.main.origin)
         if let roleId = roleId { query = query.filter(\.roleId == roleId) }
         if let userInGroupId = userInGroupId { query = query.filter(\.userInGroupId == userInGroupId) }
         return try await query.all()

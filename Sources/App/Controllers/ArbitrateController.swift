@@ -1,15 +1,6 @@
 import PrivilegeSystemDriver
 import Foundation
 
-public struct ArbitrateData: Content, Sendable {
-    let moduleId: UUID
-    let userId: UUID
-    let roleId: UUID
-    let resource: AnyResource
-    let operation: AnyOperation
-    let privilegeIds: [UUID]
-}
-
 public struct ArbitrateController: RouteCollection, Sendable {
     public func boot(routes: any RoutesBuilder) throws {
         routes.post("arbitrate", use: arbitrate)
@@ -18,8 +9,8 @@ public struct ArbitrateController: RouteCollection, Sendable {
     
     @Sendable
     func authenticate(req: Request) async throws -> AuthData {
-        let token = try req.content.decode(EncryptedToken.self)
-        let result = try await PrivilegeSystem.main.account.authenticate(token: token)
+        let data = try req.content.decode(AuthenticateData.self)
+        let result = try await PrivilegeSystem.main.account.authenticate(token: data.token, roleId: data.roleId)
         return result
     }
     
